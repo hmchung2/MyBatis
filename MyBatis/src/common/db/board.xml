@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="board.BoardDAO">
+
+
+	<sql id="selectBoard">
+		select no, title, writer, view_cnt, to_char(reg_date , 'yyyy-mm-dd') reg_date from t_board
+	</sql>
+
+
+
+	<!-- alias 붙여서 파라미터 타입 줄임 -->
+	<!-- <insert id="newBoard" parameterType="kr.ac.kopo.board.BoardVO"> -->
+	<insert id="newBoard" parameterType="boardVO">
+		insert into t_board(no, title , writer, content)
+		<!-- values(seq_t_board_no.nextval, '${title}' , '${writer}' , '${content}') -->
+		values(seq_t_board_no.nextval, #{title} , #{writer} , #{content})
+	</insert>
+
+
+	<select id="selectAll" resultType="boardVO">
+		select no, title, writer ,
+		content, view_cnt as viewCnt , to_char(reg_date, 'yyyy-mm-dd') as
+		regDate
+		from t_board
+		order by no desc
+	</select>
+
+	<resultMap type="boardVO" id="boardMap">
+		<result column="view_cnt" property="viewCnt" />
+		<result column="reg_date" property="regDate" />
+	</resultMap>
+
+
+	<select id="selectAllMap" resultMap="boardMap">
+		select no, title, writer ,
+		content, view_cnt ,reg_date
+		from t_board
+		order by no desc
+	</select>
+
+	<select id="selectOne" resultMap="boardMap"
+		parameterType="boardVO">
+		select no, title, writer, view_cnt, to_char(reg_date ,
+		'yyyy-mm-dd') reg_date
+		from t_board where no=#{no}
+	</select>
+
+	<select id="selectOne2" resultMap="boardMap" parameterType="int">
+		select no, title, writer, view_cnt, to_char(reg_date , 'yyyy-mm-dd')
+		reg_date
+		from t_board where no=#{no}
+	</select>
+
+	<select id="selectOne3" resultMap="boardMap" parameterType="int">
+		<include refid="selectBoard"></include>
+		where no=#{no}
+	</select>
+
+	<select id="selectOne4" resultType="hashMap" parameterType="int">
+		select no title, writer, content, view_cnt, reg_date
+		from t_board
+		where no=#{no}
+	</select>
+
+	<select id="selectNos" resultMap="boardMap"
+		parameterType="boardVO">
+		<include refid="selectBoard"></include>
+		where no in
+		<foreach collection="nos" item="bno" open="(" separator=","
+			close=")">
+			#{bno}
+		</foreach>
+
+	</select>
+	<!-- 맵 리스트 같은 경우는 list 로 줄여서 패키지 전부 경로 다 쓸필요 없다<select id="selectNos2" resultMap="boardMap"  parameterType="java.util.List"> -->
+	<select id="selectNos2" resultMap="boardMap" parameterType="list">
+		<include refid="selectBoard"></include>
+		where no in
+		<foreach collection="list" item="bno" open="(" separator=","
+			close=")">
+			#{bno}
+		</foreach>
+	</select>
+
+	<select id="selectNos3" resultMap="boardMap" parameterType="java.util.ArrayList">
+		<include refid="selectBoard"></include>
+		where no in
+		<foreach collection="array" item="bno" open="(" separator=","
+			close=")"> #{bno} </foreach>
+	</select>
+		
+
+	<select id="selectWhere" parameterType="string"
+		resultMap="boardMap">
+		<include refid="selectBoard"></include>
+		where title like '${title}%'
+	</select>
+
+	<select id="selectWhere2" parameterType="boardVO"
+		resultMap="boardMap">
+		<include refid="selectBoard"></include>
+		<where>
+			<if test="title != null">
+				title like '${title}%'
+			</if>
+			<if test="writer != null">
+				and writer = #{writer}
+			</if>
+		</where>
+	</select>	
+	
+</mapper>
